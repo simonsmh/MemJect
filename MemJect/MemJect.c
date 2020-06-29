@@ -127,6 +127,13 @@ INT WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
     PIMAGE_NT_HEADERS ntHeaders = (PIMAGE_NT_HEADERS)(binary + ((PIMAGE_DOS_HEADER)binary)->e_lfanew);
 
+    LPVOID ntOpenFile = GetProcAddress(LoadLibraryW(L"ntdll"), "NtOpenFile");
+    if (ntOpenFile) {
+        char originalBytes[5];
+        memcpy(originalBytes, ntOpenFile, 5);
+        WriteProcessMemory(process, ntOpenFile, originalBytes, 5, NULL);
+    }
+
     PBYTE executableImage = VirtualAllocEx(process, NULL, ntHeaders->OptionalHeader.SizeOfImage,
         MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
 
