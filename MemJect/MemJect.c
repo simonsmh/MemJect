@@ -102,7 +102,7 @@ INT WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     if (Process32FirstW(processSnapshot, &processInfo)) {
         do {
             if (!lstrcmpW(processInfo.szExeFile, PROCESS_NAME)) {
-                process = OpenProcess(PROCESS_VM_WRITE | PROCESS_VM_OPERATION | PROCESS_CREATE_THREAD, FALSE, processInfo.th32ProcessID);
+                process = OpenProcess(PROCESS_VM_READ | PROCESS_VM_WRITE | PROCESS_VM_OPERATION | PROCESS_CREATE_THREAD, FALSE, processInfo.th32ProcessID);
                 break;
             }
         } while (Process32NextW(processSnapshot, &processInfo));
@@ -128,8 +128,9 @@ INT WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     PIMAGE_NT_HEADERS ntHeaders = (PIMAGE_NT_HEADERS)(binary + ((PIMAGE_DOS_HEADER)binary)->e_lfanew);
 
     LPVOID ntOpenFile = GetProcAddress(LoadLibraryW(L"ntdll"), "NtOpenFile");
+    char originalBytes[5], patchedBytes[5];
     if (ntOpenFile) {
-        char originalBytes[5];
+        ReadProcessMemory(process, ntOpenFile, patchedBytes, 5, NULL);
         memcpy(originalBytes, ntOpenFile, 5);
         WriteProcessMemory(process, ntOpenFile, originalBytes, 5, NULL);
     }
@@ -160,6 +161,7 @@ INT WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
         (DWORD)stub - (DWORD)loadLibrary, NULL);
     WaitForSingleObject(CreateRemoteThread(process, NULL, 0, (LPTHREAD_START_ROUTINE)(loaderMemory + 1),
         loaderMemory, 0, NULL), INFINITE);
+    WriteProcessMemory(process, ntOpenFile, patchedBytes, 5, NULL);
     VirtualFreeEx(process, loaderMemory, 0, MEM_RELEASE);
 
 #if SUCCESS_MESSAGE
