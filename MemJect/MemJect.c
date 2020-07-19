@@ -1,12 +1,12 @@
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <Windows.h>
 #include <TlHelp32.h>
-#include "self.h"
 
 // Target process name
 #define PROCESS_NAME L"csgo.exe"
-
+#define DLL_NAME "F:\\Projects\\Osiris\\Release\\Osiris.dll"
 #define ERASE_ENTRY_POINT    TRUE
 #define ERASE_PE_HEADER      TRUE
 #define DECRYPT_DLL          FALSE
@@ -111,6 +111,15 @@ INT WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
     if (!process)
         return 1;
+
+    FILE* f;
+    errno_t err = fopen_s(&f, DLL_NAME, "rb");
+    fseek(f, 0, SEEK_END);
+    long fsize = ftell(f);
+    rewind(f);
+    uint8_t* binary = malloc(fsize);
+    fread(binary, 1, fsize, f);
+    fclose(f);
 
 #if DECRYPT_DLL
     INT argc;

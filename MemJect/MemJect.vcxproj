@@ -170,9 +170,6 @@
   <ItemGroup>
     <ClCompile Include="MemJect.c" />
   </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="self.h" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
